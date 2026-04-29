@@ -20,8 +20,7 @@ pipeline {
         stage('Deploy (Local Copy)') {
             steps {
                 script {
-                    // Copiar archivos del repositorio al directorio "public"
-                    sh "cp -R * ${APACHE_ROOT}"
+                    sh "rsync -av --exclude='public' --exclude='docs' ./ ${APACHE_ROOT}"
                 }
             }
         }
