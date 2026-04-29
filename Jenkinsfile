@@ -20,7 +20,12 @@ pipeline {
         stage('Deploy (Local Copy)') {
             steps {
                 script {
-                    sh "rsync -av --exclude='public' --exclude='docs' ./ ${APACHE_ROOT}"
+                    sh '''
+                    mkdir -p tmp_copy
+                    cp -R app Dockerfile Jenkinsfile tmp_copy/
+                    cp -R tmp_copy/* ${APACHE_ROOT}
+                    rm -rf tmp_copy
+                    '''
                 }
             }
         }
