@@ -2,16 +2,26 @@ pipeline {
     agent any
 
     environment {
-        APACHE_ROOT = '/var/www/html'
-        DOCS_DIR = '/var/www/html/doc'
+        APACHE_ROOT = "${WORKSPACE}/public"
+        DOCS_DIR = "${WORKSPACE}/docs"
     }
 
     stages {
-        stage('Deploy to Apache') {
+        stage('Prepare Directories') {
             steps {
                 script {
-                    // Copia los archivos del repositorio a la carpeta de Apache
-                    sh "cp -r * ${APACHE_ROOT}"
+                    // Crear directorios necesarios
+                    sh "mkdir -p ${APACHE_ROOT}"
+                    sh "mkdir -p ${DOCS_DIR}"
+                }
+            }
+        }
+
+        stage('Deploy (Local Copy)') {
+            steps {
+                script {
+                    // Copiar archivos del repositorio al directorio "public"
+                    sh "cp -R * ${APACHE_ROOT}"
                 }
             }
         }
@@ -19,9 +29,7 @@ pipeline {
         stage('Generate Documentation') {
             steps {
                 script {
-                    // Crea la carpeta de documentación si no existe
-                    sh "mkdir -p ${DOCS_DIR}"
-                    // Genera la documentación con phpDocumentor
+                    // Generar documentación con phpDocumentor
                     sh "phpdoc -d ${APACHE_ROOT} -t ${DOCS_DIR}"
                 }
             }
@@ -30,11 +38,15 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment and documentation generation successful.'
+            echo "Deployment and documentation generation successful."
         }
         failure {
-            echo 'Deployment or documentation generation failed.'
+            echo "Deployment or documentation generation failed."
+        }
+        always {
+            // Mostrar contenido generado (opcional para debug)
+            sh "ls -la ${APACHE_ROOT}"
+            sh "ls -la ${DOCS_DIR}"
         }
     }
 }
-
